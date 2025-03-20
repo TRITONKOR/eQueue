@@ -33,10 +33,6 @@ export const ProfilePage: React.FC = () => {
         formData.phone.trim() !== "" &&
         formData.agreement;
 
-    const handleReturnButtonClick = () => {
-        navigate("/");
-    };
-
     return (
         <div className="container">
             <h1>Анкета відвідувача</h1>
@@ -129,13 +125,18 @@ export const ProfilePage: React.FC = () => {
                 </div>
 
                 <div className="nav">
-                    <Button color="primary" onPress={handleReturnButtonClick}>
+                    <Button
+                        className="w-3/4 md:w-1/2 mt-6 min-h-20 text-lg"
+                        color="primary"
+                        onPress={() => navigate("/")}
+                    >
                         Повернутися назад
                     </Button>
                     <Button
+                        className="w-3/4 md:w-1/2 mt-6 min-h-20 text-lg"
                         color="primary"
-                        type="submit"
                         isDisabled={!isFormValid}
+                        onPress={() => navigate("/serviceCenters")}
                     >
                         Продовжити
                     </Button>

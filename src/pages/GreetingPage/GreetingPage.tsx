@@ -6,10 +6,6 @@ import "./greetingPage.scss";
 const GreetingPage: React.FC = () => {
     const navigate = useNavigate();
 
-    const handleClick = () => {
-        navigate("/profile");
-    };
-
     return (
         <div className="container">
             <h1>Вас вітає Центр надання адміністративних послуг!</h1>
@@ -30,7 +26,11 @@ const GreetingPage: React.FC = () => {
                     слідкувати за викликом на моніторах електронної черги.
                 </p>
             </div>
-            <Button color="primary" onPress={handleClick}>
+            <Button
+                className="w-3/4 md:w-1/2 mt-6 min-h-20 text-lg"
+                color="primary"
+                onPress={() => navigate("/profile")}
+            >
                 Заповнити анкету
             </Button>
         </div>
