@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ServiceItem } from "../../components/ServiceItem";
 import { useServiceCenter } from "../../context/ServiceCenterContext";
+import { useService } from "../../context/ServiceContext";
 
 interface Service {
     Description: string;
@@ -14,6 +15,7 @@ interface Service {
 
 export const ServicesPage: React.FC = () => {
     const { selectedCenter } = useServiceCenter();
+    const { setSelectedService } = useService();
     const [services, setServices] = useState<Service[]>([]);
     const navigate = useNavigate();
 
@@ -21,6 +23,8 @@ export const ServicesPage: React.FC = () => {
         if (selectedCenter === null) {
             navigate("/serviceCenters");
         }
+
+        console.log("rendered services");
 
         axios
             .get(
@@ -37,7 +41,7 @@ export const ServicesPage: React.FC = () => {
             .catch((error) => {
                 console.error("Error fetching services:", error);
             });
-    }, [navigate, selectedCenter, selectedCenter?.ServiceCenterId]);
+    }, []);
 
     return (
         <div className="container w-full gap-6 p-6">
@@ -45,9 +49,13 @@ export const ServicesPage: React.FC = () => {
                 Будь ласка, оберіть необхідну послугу
             </h1>
 
-            <div className="w-full h-[70vh] overflow-y-auto grid grid-cols-2 gap-5 px-6">
+            <div className="w-full h-[70vh] overflow-y-auto flex flex-wrap gap-5 px-6 justify-center">
                 {services.map((service: Service) => (
-                    <ServiceItem key={service.ServiceId} service={service} />
+                    <ServiceItem
+                        key={service.ServiceId}
+                        service={service}
+                        onPress={setSelectedService}
+                    />
                 ))}
             </div>
 

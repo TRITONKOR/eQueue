@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ServiceCenterItem } from "../../components/ServiceCenterItem";
 import { useServiceCenter } from "../../context/ServiceCenterContext";
+import { useUser } from "../../context/UserContext";
 import "./serviceCentersPage.scss";
 
 interface ServiceCenter {
@@ -14,11 +15,15 @@ interface ServiceCenter {
 }
 
 export const ServiceCentersPage: React.FC = () => {
+    const { userProfile } = useUser();
     const [centers, setCenters] = useState<ServiceCenter[]>([]);
     const { setSelectedCenter } = useServiceCenter();
     const navigate = useNavigate();
 
     useEffect(() => {
+        console.log("rendered center");
+        console.log(userProfile);
+
         axios
             .get(
                 `/api/QueueService.svc/json_pre_reg_https/getServiceCenterList?organisationGuid={4c750754-aa83-410c-8a7f-55d71233380a}`
