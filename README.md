@@ -47,6 +47,7 @@ Ensure you have the following installed:
    ```bash
 
    VITE_API_URL=https://elreg.rada-uzhgorod.gov.ua
+   VITE_API_HOST=elreg.rada-uzhgorod.gov.ua
    VITE_ORGANIZATION_GUID=4c750754-aa83-410c-8a7f-55d71233380a
 
 ### Running the Application
