@@ -156,6 +156,7 @@ export const RegistrationPage: React.FC = () => {
                                 }))}
                                 onSelectionChange={handleDateChange}
                                 size="lg"
+                                placeholder="Оберіть дату"
                             >
                                 {(availableDate) => (
                                     <SelectItem key={availableDate.label}>
@@ -183,6 +184,7 @@ export const RegistrationPage: React.FC = () => {
                                     setSelectedTime(keys.currentKey as string)
                                 }
                                 size="lg"
+                                placeholder="Оберіть час"
                                 isDisabled={!selectedDate}
                                 disabledKeys={availableTimes
                                     .filter((time) => !time.isAvailable)

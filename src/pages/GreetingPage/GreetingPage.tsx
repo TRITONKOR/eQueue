@@ -35,10 +35,6 @@ const GreetingPage: React.FC = () => {
                         </li>
                         <li className="flex items-start">
                             <span className="mr-2 text-blue-500">•</span>
-                            <span>Окремий запис для видачі документів</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="mr-2 text-blue-500">•</span>
                             <span>
                                 Роздрукуйте інформацію про запис для
                                 пред'явлення адміністратору

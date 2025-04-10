@@ -5,7 +5,6 @@ interface Service {
     Description: string;
     ServiceCenterId: number;
     ServiceId: number;
-    OrderWeight: number;
 }
 
 interface ServiceItemProps {
