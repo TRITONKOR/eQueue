@@ -16,6 +16,7 @@ services:
             - ./default.conf.template:/etc/nginx/templates/default.conf.template
         networks:
             - app-network
+        restart: always
 
 networks:
     app-network:
