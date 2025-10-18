@@ -1,31 +1,21 @@
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    getAllServices,
+    getGroups,
+    getServices,
+    type Service,
+    type ServiceGroup,
+} from "../../api/cnapApi";
 import { GroupItem } from "../../components/GroupItem";
 import { ServiceItem } from "../../components/ServiceItem";
 import { useServiceCenter } from "../../context/ServiceCenterContext";
 import { useService } from "../../context/ServiceContext";
-import { useUser } from "../../context/UserContext";
-
-interface Service {
-    Description: string;
-    ServiceCenterId: number;
-    ServiceId: number;
-    GroupId: number;
-}
-
-interface ServiceGroup {
-    Description: string;
-    GroupGuid: string;
-    GroupId: number;
-    isActive: number;
-}
 
 export const ServicesPage: React.FC = () => {
-    const { userProfile } = useUser();
     const { selectedCenter } = useServiceCenter();
     const { setSelectedService } = useService();
 
@@ -38,14 +28,8 @@ export const ServicesPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
 
     const navigate = useNavigate();
-    const organizationGuid = import.meta.env.VITE_ORGANIZATION_GUID;
 
     useEffect(() => {
-        if (userProfile.firstName === "") {
-            navigate("/profile");
-            return;
-        }
-
         if (!selectedCenter) {
             navigate("/serviceCenters");
             return;
@@ -53,32 +37,28 @@ export const ServicesPage: React.FC = () => {
 
         fetchGroups();
         fetchAllServices();
-    }, [navigate, selectedCenter, userProfile.firstName]);
+    }, [navigate, selectedCenter]);
 
     const fetchAllServices = async () => {
+        if (!selectedCenter) return;
         try {
-            const response = await axios.get(
-                `/api/QueueService.svc/json_pre_reg_https/GetServiceList?organisationGuid={${organizationGuid}}&serviceCenterId=${selectedCenter?.ServiceCenterId}`
+            const allServices = await getAllServices(
+                selectedCenter.ServiceCenterId
             );
-            const data = response.data;
-            if (data && Array.isArray(data.d)) {
-                setServices(data.d);
-            }
+            setServices(allServices);
         } catch (error) {
             console.error("Error fetching all services:", error);
         }
     };
 
     const fetchGroups = async () => {
+        if (!selectedCenter) return;
         setLoading(true);
         try {
-            const response = await axios.get(
-                `/api/QueueService.svc/json_wellcome_point_https/getGroupsByCenterId?organisationGuid={${organizationGuid}}&serviceCenterId=${selectedCenter?.ServiceCenterId}&parentGroupId=0&languageId=1&preliminary=1`
+            const serviceGroups = await getGroups(
+                selectedCenter.ServiceCenterId
             );
-            const data = response.data;
-            if (data && Array.isArray(data.d)) {
-                setGroups(data.d);
-            }
+            setGroups(serviceGroups);
         } catch (error) {
             console.error("Error fetching groups:", error);
         } finally {
@@ -87,15 +67,14 @@ export const ServicesPage: React.FC = () => {
     };
 
     const fetchServices = async (groupId: number) => {
+        if (!selectedCenter) return;
         setLoading(true);
         try {
-            const response = await axios.get(
-                `/api/QueueService.svc/json_wellcome_point_https/getServicesByCenterId?organisationGuid={${organizationGuid}}&serviceCenterId=${selectedCenter?.ServiceCenterId}&groupId=${groupId}&languageId=1&preliminary=1`
+            const groupServices = await getServices(
+                selectedCenter.ServiceCenterId,
+                groupId
             );
-            const data = response.data;
-            if (data && Array.isArray(data.d)) {
-                setServices(data.d);
-            }
+            setServices(groupServices);
         } catch (error) {
             console.error("Error fetching services:", error);
         } finally {

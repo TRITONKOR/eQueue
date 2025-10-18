@@ -1,28 +1,27 @@
 import { Button } from "@heroui/button";
 import { Select, SelectItem } from "@heroui/select";
 import { Spinner } from "@heroui/spinner";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useReceipt } from "../../context/ReceiptContext";
+
 import { useServiceCenter } from "../../context/ServiceCenterContext";
 import { useService } from "../../context/ServiceContext";
-import { useUser } from "../../context/UserContext";
 import {
     fetchAvailableDates,
     fetchAvailableTimes,
-    reformatDate,
+    FormattedAvailableDate,
+    FormattedAvailableTime,
 } from "../../services/dateService";
 
 export const RegistrationPage: React.FC = () => {
-    const { userProfile } = useUser();
     const { selectedService } = useService();
     const { selectedCenter } = useServiceCenter();
-    const { setReceipt } = useReceipt();
 
-    const [availableDates, setAvailableDates] = useState<string[]>([]);
+    const [availableDates, setAvailableDates] = useState<
+        FormattedAvailableDate[]
+    >([]);
     const [availableTimes, setAvailableTimes] = useState<
-        { time: string; isAvailable: boolean }[]
+        FormattedAvailableTime[]
     >([]);
 
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -32,15 +31,8 @@ export const RegistrationPage: React.FC = () => {
 
     const navigate = useNavigate();
 
-    const organizationGuid = import.meta.env.VITE_ORGANIZATION_GUID;
-
     useEffect(() => {
-        if (userProfile.firstName === "") {
-            navigate("/profile");
-            return;
-        }
-
-        if (!selectedService || !selectedCenter || !userProfile) {
+        if (!selectedService || !selectedCenter) {
             navigate("/servicesAndGroups");
             return;
         }
@@ -52,7 +44,7 @@ export const RegistrationPage: React.FC = () => {
                 selectedService.ServiceId
             )
                 .then((dates) => {
-                    setAvailableDates(dates);
+                    setAvailableDates(dates.map((date) => ({ date })));
                     setLoading(false);
                 })
                 .catch((error) => {
@@ -63,7 +55,7 @@ export const RegistrationPage: React.FC = () => {
             console.error("Error fetching dates:", error);
             setLoading(false);
         }
-    }, [selectedService, selectedCenter, userProfile, navigate]);
+    }, [selectedService, selectedCenter, navigate]);
 
     const handleDateChange = (keys: {
         anchorKey?: string;
@@ -89,34 +81,15 @@ export const RegistrationPage: React.FC = () => {
             .catch((error) => console.error("Error fetching times:", error));
     };
 
-    const handleRegistration = () => {
+    const handleConfirmation = () => {
         if (!selectedDate || !selectedTime) return;
 
-        axios
-            .get(
-                `/api/QueueService.svc/json_pre_reg_https/RegCustomerEx?organisationGuid={${organizationGuid}}&serviceCenterId=${
-                    selectedCenter?.ServiceCenterId
-                }&serviceId=${selectedService?.ServiceId}&phone=${
-                    userProfile.phone
-                }&email=${userProfile.email}&name=${userProfile.lastName} ${
-                    userProfile.firstName
-                } ${userProfile.middleName}&customerInfo=${
-                    userProfile.companyName
-                }&date=${reformatDate(selectedDate)} ${selectedTime}:00`
-            )
-            .then((response) => {
-                const { CustOrderGuid, CustReceiptNum } = response.data.d;
-                setReceipt({
-                    CustOrderGuid,
-                    CustReceiptNum,
-                    selectedDate,
-                    selectedTime,
-                });
-                navigate("/receipt");
-            })
-            .catch((error) => {
-                console.error("Error registration:", error);
-            });
+        navigate("/profile", {
+            state: {
+                selectedDate,
+                selectedTime,
+            },
+        });
     };
 
     const isButtonDisabled = !selectedDate || !selectedTime;
@@ -151,9 +124,11 @@ export const RegistrationPage: React.FC = () => {
                                 classNames={{
                                     trigger: "w-full min-w-[300px]",
                                 }}
-                                items={availableDates.map((date) => ({
-                                    label: date,
-                                }))}
+                                items={availableDates.map(
+                                    (date): { label: string } => ({
+                                        label: date.date,
+                                    })
+                                )}
                                 onSelectionChange={handleDateChange}
                                 size="lg"
                                 placeholder="Оберіть дату"
@@ -178,7 +153,7 @@ export const RegistrationPage: React.FC = () => {
                                 items={availableTimes.map((timeObj) => ({
                                     label: timeObj.time,
                                     key: timeObj.time,
-                                    isDisabled: !timeObj.isAvailable,
+                                    isDisabled: !timeObj.IsAvailable,
                                 }))}
                                 onSelectionChange={(keys) =>
                                     setSelectedTime(keys.currentKey as string)
@@ -187,7 +162,7 @@ export const RegistrationPage: React.FC = () => {
                                 placeholder="Оберіть час"
                                 isDisabled={!selectedDate}
                                 disabledKeys={availableTimes
-                                    .filter((time) => !time.isAvailable)
+                                    .filter((time) => !time.IsAvailable)
                                     .map((time) => time.time)}
                             >
                                 {(availableTime) => (
@@ -225,7 +200,7 @@ export const RegistrationPage: React.FC = () => {
                         <Button
                             className="btn-primary px-8 py-3 w-full sm:w-auto"
                             color="primary"
-                            onPress={handleRegistration}
+                            onPress={handleConfirmation}
                             isDisabled={isButtonDisabled}
                         >
                             ✅ Підтвердити запис

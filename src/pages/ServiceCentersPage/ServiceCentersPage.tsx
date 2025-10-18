@@ -1,26 +1,17 @@
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getServiceCenters, type ServiceCenter } from "../../api/cnapApi";
 import { ServiceCenterItem } from "../../components/ServiceCenterItem";
 import { useServiceCenter } from "../../context/ServiceCenterContext";
-import { useUser } from "../../context/UserContext";
-
-interface ServiceCenter {
-    BranchName: string;
-    ServiceCenterId: number;
-    ServiceCenterName: string;
-    LocationName: string;
-}
 
 const allowedServiceCenterIds = [1, 2];
 const CACHE_KEY = "serviceCentersCache";
 const CACHE_EXPIRY = 15 * 60 * 1000; // 15 хвилин
 
 export const ServiceCentersPage: React.FC = () => {
-    const { userProfile } = useUser();
     const { setSelectedCenter } = useServiceCenter();
     const navigate = useNavigate();
 
@@ -28,14 +19,7 @@ export const ServiceCentersPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
 
-    const organizationGuid = import.meta.env.VITE_ORGANIZATION_GUID;
-
     useEffect(() => {
-        if (userProfile.firstName === "") {
-            navigate("/profile");
-            return;
-        }
-
         const cachedData = localStorage.getItem(CACHE_KEY);
         if (cachedData) {
             const parsedData = JSON.parse(cachedData);
@@ -47,35 +31,24 @@ export const ServiceCentersPage: React.FC = () => {
         }
 
         fetchServiceCenters();
-    }, [navigate, organizationGuid, userProfile.firstName]);
+    }, []);
 
     const fetchServiceCenters = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(
-                `/api/QueueService.svc/json_pre_reg_https/getServiceCenterList?organisationGuid={${organizationGuid}}`
+            const allCenters = await getServiceCenters();
+            const filteredCenters = allCenters.filter((center) =>
+                allowedServiceCenterIds.includes(center.ServiceCenterId)
             );
 
-            const data = response.data;
-            if (data && Array.isArray(data.d)) {
-                const filteredCenters = data.d.filter((center: ServiceCenter) =>
-                    allowedServiceCenterIds.includes(center.ServiceCenterId)
-                );
-
-                setCenters(filteredCenters);
-                localStorage.setItem(
-                    CACHE_KEY,
-                    JSON.stringify({
-                        data: filteredCenters,
-                        expiry: Date.now() + CACHE_EXPIRY,
-                    })
-                );
-            } else {
-                console.log(data);
-                console.error(
-                    "ServiceCenters not found or 'd' is not an array"
-                );
-            }
+            setCenters(filteredCenters);
+            localStorage.setItem(
+                CACHE_KEY,
+                JSON.stringify({
+                    data: filteredCenters,
+                    expiry: Date.now() + CACHE_EXPIRY,
+                })
+            );
         } catch (error) {
             console.error("Error fetching service centers:", error);
         } finally {
@@ -84,7 +57,7 @@ export const ServiceCentersPage: React.FC = () => {
     };
 
     const filteredCenters = centers.filter((service) =>
-        service.ServiceCenterName.toLowerCase().includes(
+        service.ServiceCenterName?.toLowerCase().includes(
             searchQuery.toLowerCase()
         )
     );

@@ -72,7 +72,7 @@ const GreetingPage: React.FC = () => {
                 <Button
                     className="btn-primary px-8 py-4 text-lg text-center"
                     color="primary"
-                    onPress={() => navigate("/profile")}
+                    onPress={() => navigate("/serviceCenters")}
                 >
                     Почати запис ➡️
                 </Button>

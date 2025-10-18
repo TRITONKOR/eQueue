@@ -3,13 +3,20 @@ import { Checkbox } from "@heroui/checkbox";
 import { Form } from "@heroui/form";
 import { Input } from "@heroui/input";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { registerCustomer } from "../../api/cnapApi";
+import { useServiceCenter } from "../../context/ServiceCenterContext";
+import { useService } from "../../context/ServiceContext";
 import { useUser } from "../../context/UserContext";
 import "./profilePage.scss";
 
 export const ProfilePage: React.FC = () => {
     const { userProfile, setUserProfile } = useUser();
+    const { selectedService } = useService();
+    const { selectedCenter } = useServiceCenter();
+
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [formData, setFormData] = useState({
         lastName: "",
@@ -40,6 +47,15 @@ export const ProfilePage: React.FC = () => {
     });
 
     useEffect(() => {
+        if (
+            !selectedCenter ||
+            !selectedService ||
+            !location.state.selectedDate ||
+            !location.state.selectedTime
+        ) {
+            navigate("/");
+        }
+
         setFormData({
             lastName: userProfile.lastName || "",
             firstName: userProfile.firstName || "",
@@ -49,7 +65,13 @@ export const ProfilePage: React.FC = () => {
             companyName: userProfile.companyName || "",
             agreement: false,
         });
-    }, [userProfile]);
+    }, [
+        userProfile,
+        navigate,
+        selectedCenter,
+        selectedService,
+        location.state,
+    ]);
 
     const validateLastName = useCallback((value: string) => {
         const isValid = value.trim().length >= 2;
@@ -158,6 +180,43 @@ export const ProfilePage: React.FC = () => {
         formData.middleName.trim() !== "" &&
         formData.phone.trim() !== "" &&
         formData.agreement;
+
+    const handleSubmit = async () => {
+        try {
+            if (
+                isFormValid &&
+                location.state.selectedDate &&
+                location.state.selectedTime &&
+                selectedService &&
+                selectedCenter
+            ) {
+                const { CustOrderGuid, CustReceiptNum } =
+                    await registerCustomer({
+                        serviceCenterId: selectedCenter.ServiceCenterId,
+                        serviceId: selectedService.ServiceId,
+                        date: location.state.selectedDate,
+                        time: location.state.selectedTime,
+                        lastName: formData.lastName,
+                        firstName: formData.firstName,
+                        middleName: formData.middleName,
+                        phone: formData.phone,
+                        email: formData.email,
+                        companyName: formData.companyName,
+                    });
+
+                navigate("/receipt", {
+                    state: {
+                        CustOrderGuid,
+                        CustReceiptNum,
+                        selectedDate: location.state.date,
+                        selectedTime: location.state.time,
+                    },
+                });
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+        }
+    };
 
     return (
         <div className="container-primary max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -359,7 +418,7 @@ export const ProfilePage: React.FC = () => {
                         className="btn-primary px-8 py-3 order-1 sm:order-2"
                         color="primary"
                         isDisabled={!isFormValid}
-                        onPress={() => navigate("/serviceCenters")}
+                        onPress={handleSubmit}
                     >
                         Продовжити ➡️
                     </Button>

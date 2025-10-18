@@ -1,8 +1,7 @@
 import { Button } from "@heroui/button";
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useReceipt } from "../../context/ReceiptContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getReceipt } from "../../api/cnapApi";
 import { useServiceCenter } from "../../context/ServiceCenterContext";
 import { useService } from "../../context/ServiceContext";
 import { useUser } from "../../context/UserContext";
@@ -11,10 +10,11 @@ import html2canvas from "html2canvas";
 
 export const ReceiptPage: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
     const { userProfile } = useUser();
     const { selectedService } = useService();
     const { selectedCenter } = useServiceCenter();
-    const { receipt } = useReceipt();
 
     const [htmlReceipt, setHtmlReceipt] = useState("");
 
@@ -24,31 +24,27 @@ export const ReceiptPage: React.FC = () => {
             return;
         }
 
-        if (!selectedService || !selectedCenter || !userProfile) {
+        if (!selectedService || !selectedCenter) {
             navigate("/servicesAndGroups");
             return;
         }
 
-        try {
-            axios
-                .get(
-                    `/api/QueueService.svc/json_pre_reg_https/GetReceipt?organisationGuid={${
-                        import.meta.env.VITE_ORGANIZATION_GUID
-                    }}&serviceCenterId=${
-                        selectedCenter?.ServiceCenterId
-                    }&orderGuid={${receipt?.CustOrderGuid}}`
-                )
-                .then((response) => {
-                    const data = response.data;
-                    setHtmlReceipt(data.d);
-                    console.log(data);
-                });
-        } catch (error) {
-            console.error("Error fetching receipt:", error);
-        }
+        const fetchReceipt = async () => {
+            try {
+                const html = await getReceipt(
+                    import.meta.env.VITE_ORGANIZATION_GUID,
+                    selectedCenter?.ServiceCenterId ?? 0,
+                    location.state?.CustOrderGuid ?? ""
+                );
+                setHtmlReceipt(html);
+            } catch (error) {
+                console.error("Error fetching receipt:", error);
+            }
+        };
+        fetchReceipt();
     }, [
         navigate,
-        receipt?.CustOrderGuid,
+        location.state?.CustOrderGuid,
         selectedCenter,
         selectedService,
         userProfile,
@@ -144,7 +140,7 @@ export const ReceiptPage: React.FC = () => {
                                     <p className="font-medium">
                                         📅 Дата прийому:{" "}
                                         <span className="font-bold">
-                                            {receipt?.selectedDate}
+                                            {location?.state.date}
                                         </span>
                                     </p>
                                 </div>
@@ -152,7 +148,7 @@ export const ReceiptPage: React.FC = () => {
                                     <p className="font-medium">
                                         ⏰ Час:{" "}
                                         <span className="font-bold">
-                                            {receipt?.selectedTime}
+                                            {location?.state.time}
                                         </span>
                                     </p>
                                 </div>
@@ -160,7 +156,7 @@ export const ReceiptPage: React.FC = () => {
                                     <p className="font-medium">
                                         🔢 Номер у черзі:{" "}
                                         <span className="font-bold">
-                                            {receipt?.CustReceiptNum}
+                                            {location?.state.CustReceiptNum}
                                         </span>
                                     </p>
                                 </div>

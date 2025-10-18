@@ -1,34 +1,32 @@
-import axios from "axios";
+import {
+    AvailableDate,
+    AvailableTime,
+    getAvailableDates,
+    getAvailableTimes,
+} from "../api/cnapApi";
 
-interface PreRegDay {
-    DatePart: string;
-    IsAllow: number;
+export interface FormattedAvailableDate {
+    date: string; // "15 жовтня"
 }
 
-interface PreRegTime {
-    StartTime: string;
-    IsAllow: number;
+export interface FormattedAvailableTime {
+    time: string; // "HH:mm"
+    IsAvailable: boolean;
 }
-
-const organizationGuid = import.meta.env.VITE_ORGANIZATION_GUID;
 
 export const fetchAvailableDates = async (
     serviceCenterId: number,
     serviceId: number
-): Promise<string[]> => {
+): Promise<FormattedAvailableDate["date"][]> => {
     try {
-        const response = await axios.get(
-            `/api/QueueService.svc/json_pre_reg_https/GetDayList?organisationGuid={${organizationGuid}}&serviceCenterId=${serviceCenterId}&serviceId=${serviceId}`
-        );
+        const response = await getAvailableDates(serviceCenterId, serviceId);
 
-        const data = response.data;
-
-        if (data && Array.isArray(data.d)) {
-            return data.d
-                .filter((day: PreRegDay) => day.IsAllow === 1)
-                .map((day: PreRegDay) => formatDate(day.DatePart));
+        if (response && Array.isArray(response)) {
+            return response
+                .filter((day: AvailableDate) => day.IsAllow === 1)
+                .map((day: AvailableDate) => formatDate(day.DatePart));
         } else {
-            console.error("Invalid data format:", data);
+            console.error("Invalid data format:", response);
             return [];
         }
     } catch (error) {
@@ -41,22 +39,23 @@ export const fetchAvailableTimes = async (
     serviceCenterId: number,
     serviceId: number,
     date: string
-): Promise<{ time: string; isAvailable: boolean }[]> => {
+): Promise<FormattedAvailableTime[]> => {
+    const formattedDate = reformatDate(date);
+
     try {
-        const formattedDate = reformatDate(date);
-        const response = await axios.get(
-            `/api/QueueService.svc/json_pre_reg_https/GetTimeList?organisationGuid={${organizationGuid}}&serviceCenterId=${serviceCenterId}&serviceId=${serviceId}&date=${formattedDate}`
+        const response = await getAvailableTimes(
+            serviceCenterId,
+            serviceId,
+            formattedDate
         );
 
-        const data = response.data;
-
-        if (data && Array.isArray(data.d)) {
-            return data.d.map((time: PreRegTime) => ({
+        if (response && Array.isArray(response)) {
+            return response.map((time: AvailableTime) => ({
                 time: parseTime(time.StartTime),
-                isAvailable: time.IsAllow === 1,
+                IsAvailable: time.IsAllow === 1,
             }));
         } else {
-            console.error("Invalid time data format:", data);
+            console.error("Invalid time format:", response);
             return [];
         }
     } catch (error) {
@@ -64,7 +63,6 @@ export const fetchAvailableTimes = async (
         return [];
     }
 };
-
 export const formatDate = (datePart: string): string => {
     const timestamp = parseInt(datePart.match(/\d+/)?.[0] || "0", 10);
     const date = new Date(timestamp);
