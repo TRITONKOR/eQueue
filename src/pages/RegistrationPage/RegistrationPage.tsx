@@ -104,6 +104,13 @@ export const RegistrationPage: React.FC = () => {
                 <>
                     <div className="text-center mb-10">
                         <h1 className="h1-primary mb-4">Оберіть час візиту</h1>
+                        {availableDates.length === 0 && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 w-full max-w-2xl mx-auto">
+                                <p className="text-yellow-800 font-medium">
+                                    На даний момент місця для запису зайняті, спробуйте завтра
+                                </p>
+                            </div>
+                        )}
                         <div className="bg-blue-50 rounded-lg p-4 inline-block">
                             <p className="text-xl font-semibold text-blue-800">
                                 {selectedService?.Description}
