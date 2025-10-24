@@ -44,6 +44,7 @@ const api = axios.create({
     baseURL: "/api/QueueService.svc",
     headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
     },
 });
 
