@@ -7,7 +7,7 @@ import { getServiceCenters, type ServiceCenter } from "../../api/cnapApi";
 import { ServiceCenterItem } from "../../components/ServiceCenterItem";
 import { useServiceCenter } from "../../context/ServiceCenterContext";
 
-const allowedServiceCenterIds = [1, 2];
+const allowedServiceCenterIds = [1, 2, 28];
 const CACHE_KEY = "serviceCentersCache";
 const CACHE_EXPIRY = 15 * 60 * 1000; // 15 хвилин
 
