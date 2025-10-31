@@ -29,6 +29,8 @@ export const ServicesPage: React.FC = () => {
 
     const navigate = useNavigate();
 
+    const [missingServices, setMissingServices] = useState<Service[]>([]);
+
     useEffect(() => {
         if (!selectedCenter) {
             navigate("/serviceCenters");
@@ -52,12 +54,25 @@ export const ServicesPage: React.FC = () => {
     };
 
     const fetchGroups = async () => {
+        const missingGroupId = 0;
+
         if (!selectedCenter) return;
         setLoading(true);
         try {
             const serviceGroups = await getGroups(
                 selectedCenter.ServiceCenterId
             );
+
+            setGroups(serviceGroups);
+
+            if (selectedCenter.ServiceCenterId === 1) {
+                const missingGroupServices = await getServices(
+                    selectedCenter.ServiceCenterId,
+                    missingGroupId
+                );
+
+                setMissingServices(missingGroupServices);
+            }
             setGroups(serviceGroups);
         } catch (error) {
             console.error("Error fetching groups:", error);
@@ -129,9 +144,17 @@ export const ServicesPage: React.FC = () => {
                         <div className="grid gap-4 mb-8 grid-cols-1 sm:grid-cols-2">
                             {groups.map((group) => (
                                 <GroupItem
-                                    key={group.GroupId}
+                                    key={`group-${group.GroupId}`}
                                     group={group}
                                     onPress={handleGroupSelect}
+                                />
+                            ))}
+
+                            {missingServices.map((service) => (
+                                <ServiceItem
+                                    key={`missing-${service.ServiceId}`}
+                                    service={service}
+                                    onPress={setSelectedService}
                                 />
                             ))}
                         </div>
