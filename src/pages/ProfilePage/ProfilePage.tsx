@@ -55,7 +55,6 @@ export const ProfilePage: React.FC = () => {
         ) {
             navigate("/");
         }
-
         setFormData({
             lastName: userProfile.lastName || "",
             firstName: userProfile.firstName || "",

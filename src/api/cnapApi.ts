@@ -1,5 +1,4 @@
 import axios, { AxiosError } from "axios";
-import { reformatDate } from "../services/dateService";
 
 export interface ServiceCenter {
     ServiceCenterId: number;
@@ -158,7 +157,7 @@ export const registerCustomer = async (
             } ${params.middleName}&phone=${params.phone}${
                 params.email ? `&email=${params.email}` : ""
             }${params.companyName ? `&customerInfo=${params.companyName}` : ""}
-            &date=${reformatDate(params.date)} ${params.time}:00`
+            &date=${params.date} ${params.time}:00`
         );
         return response.data.d;
     } catch (error) {

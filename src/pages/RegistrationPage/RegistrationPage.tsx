@@ -44,7 +44,7 @@ export const RegistrationPage: React.FC = () => {
                 selectedService.ServiceId
             )
                 .then((dates) => {
-                    setAvailableDates(dates.map((date) => ({ date })));
+                    setAvailableDates(dates);
                     setLoading(false);
                 })
                 .catch((error) => {
@@ -67,12 +67,16 @@ export const RegistrationPage: React.FC = () => {
         }
 
         const date = keys.currentKey as string;
-        setSelectedDate(date);
+        const chosen = availableDates.find((d) => d.label === date);
+
+        if (!chosen) return;
+
+        setSelectedDate(chosen.iso);
 
         fetchAvailableTimes(
             selectedCenter.ServiceCenterId,
             selectedService.ServiceId,
-            date
+            chosen.iso
         )
             .then((times) => {
                 setAvailableTimes(times);
@@ -107,7 +111,8 @@ export const RegistrationPage: React.FC = () => {
                         {availableDates.length === 0 && (
                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 w-full max-w-2xl mx-auto">
                                 <p className="text-yellow-800 font-medium">
-                                    На даний момент місця для запису зайняті, спробуйте завтра
+                                    На даний момент місця для запису зайняті,
+                                    спробуйте завтра
                                 </p>
                             </div>
                         )}
@@ -133,7 +138,7 @@ export const RegistrationPage: React.FC = () => {
                                 }}
                                 items={availableDates.map(
                                     (date): { label: string } => ({
-                                        label: date.date,
+                                        label: date.label,
                                     })
                                 )}
                                 onSelectionChange={handleDateChange}
